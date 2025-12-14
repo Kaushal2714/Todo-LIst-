@@ -77,22 +77,174 @@
     </main>
 
     <script>
-        // CSRF token for AJAX requests
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+        // LocalStorage Task Manager
+        class TaskManager {
+            constructor() {
+                this.tasks = this.loadTasks();
+                this.nextId = this.getNextId();
+            }
+
+            loadTasks() {
+                const stored = localStorage.getItem('taskflow_tasks');
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            saveTasks() {
+                localStorage.setItem('taskflow_tasks', JSON.stringify(this.tasks));
+            }
+
+            getNextId() {
+                const maxId = this.tasks.reduce((max, task) => Math.max(max, task.id || 0), 0);
+                return maxId + 1;
+            }
+
+            addTask(taskData) {
+                const task = {
+                    id: this.nextId++,
+                    title: taskData.title,
+                    description: taskData.description || '',
+                    priority: taskData.priority || 'Medium',
+                    status: taskData.status || 'To-Do',
+                    due_date: taskData.due_date || null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                this.tasks.push(task);
+                this.saveTasks();
+                return task;
+            }
+
+            updateTask(id, updates) {
+                const taskIndex = this.tasks.findIndex(task => task.id === parseInt(id));
+                if (taskIndex !== -1) {
+                    this.tasks[taskIndex] = {
+                        ...this.tasks[taskIndex],
+                        ...updates,
+                        updated_at: new Date().toISOString()
+                    };
+                    this.saveTasks();
+                    return this.tasks[taskIndex];
+                }
+                return null;
+            }
+
+            deleteTask(id) {
+                const taskIndex = this.tasks.findIndex(task => task.id === parseInt(id));
+                if (taskIndex !== -1) {
+                    this.tasks.splice(taskIndex, 1);
+                    this.saveTasks();
+                    return true;
+                }
+                return false;
+            }
+
+            getTask(id) {
+                return this.tasks.find(task => task.id === parseInt(id));
+            }
+
+            getTasks(filters = {}) {
+                let filtered = [...this.tasks];
+                
+                if (filters.priority) {
+                    filtered = filtered.filter(task => task.priority === filters.priority);
+                }
+                if (filters.status) {
+                    filtered = filtered.filter(task => task.status === filters.status);
+                }
+                
+                // Sort tasks
+                if (filters.sort === 'oldest') {
+                    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                } else if (filters.sort === 'due_date') {
+                    filtered.sort((a, b) => {
+                        if (!a.due_date) return 1;
+                        if (!b.due_date) return -1;
+                        return new Date(a.due_date) - new Date(b.due_date);
+                    });
+                } else {
+                    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                }
+                
+                return filtered;
+            }
+
+            isDuplicate(title, status, excludeId = null) {
+                return this.tasks.some(task => 
+                    task.title === title && 
+                    task.status === status && 
+                    task.id !== excludeId
+                );
+            }
+
+            loadSampleData() {
+                if (this.tasks.length === 0) {
+                    const sampleTasks = [
+                        {
+                            title: "Design Homepage UI",
+                            description: "Create wireframes and layout structure",
+                            priority: "High",
+                            status: "To-Do",
+                            due_date: "2025-02-12T09:00:00"
+                        },
+                        {
+                            title: "Setup Project Structure",
+                            description: "Configure project files and folders",
+                            priority: "High",
+                            status: "In-Progress",
+                            due_date: "2025-01-30T15:00:00"
+                        },
+                        {
+                            title: "Write Documentation",
+                            description: "Create user manual and setup guide",
+                            priority: "Medium",
+                            status: "To-Do",
+                            due_date: "2025-02-15T12:00:00"
+                        },
+                        {
+                            title: "Initial Planning",
+                            description: "Project planning and requirements gathering",
+                            priority: "High",
+                            status: "Completed",
+                            due_date: "2025-01-25T10:00:00"
+                        }
+                    ];
+                    
+                    sampleTasks.forEach(taskData => this.addTask(taskData));
                 }
             }
-            return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken');
+
+        // Initialize task manager
+        window.taskManager = new TaskManager();
+
+        // Utility functions
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `glass-effect text-${type === 'success' ? 'green' : 'red'}-800 px-6 py-4 rounded-2xl mb-4 border border-${type === 'success' ? 'green' : 'red'}-200 fixed top-4 right-4 z-50`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">${type === 'success' ? '✅' : '❌'}</span>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
     </script>
 </body>
 </html>

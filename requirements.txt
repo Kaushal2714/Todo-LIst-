@@ -1,5 +1,12 @@
+# Core Django
 Django==4.2.7
-psycopg2-binary==2.9.7
+
+# Database adapters (choose one based on your database)
+psycopg2-binary==2.9.7    # For PostgreSQL
+# mysqlclient==2.2.0       # Uncomment for MySQL
+# No additional package needed for SQLite
+
+# Other dependencies
 django-cors-headers==4.3.1
 python-decouple==3.8
 gunicorn==21.2.0

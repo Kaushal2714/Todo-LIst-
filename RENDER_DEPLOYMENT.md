@@ -42,6 +42,9 @@ Fill in these settings:
 - **Build Command**: `./build.sh`
 - **Start Command**: `gunicorn task_manager.wsgi:application`
 
+**IMPORTANT**: Make sure the Start Command is exactly: `gunicorn task_manager.wsgi:application`
+(NOT `gunicorn app:app`)
+
 ### Advanced Settings:
 - **Plan**: Free (for testing)
 - **Auto-Deploy**: Yes (recommended)

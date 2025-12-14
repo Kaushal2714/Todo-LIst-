@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: taskflow
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn task_manager.wsgi:application"
+    plan: free
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+  - type: pserv
+    name: taskflow-db
+    env: postgresql
+    plan: free
+    ipAllowList: []

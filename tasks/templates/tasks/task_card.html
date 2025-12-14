@@ -1,0 +1,66 @@
+<div class="task-card bg-white rounded-2xl p-5 cursor-move card-hover shadow-lg border-l-4 
+    {% if task.priority == 'High' %}border-red-400
+    {% elif task.priority == 'Medium' %}border-yellow-400
+    {% else %}border-green-400{% endif %}" data-task-id="{{ task.id }}">
+    
+    <!-- Header with Priority -->
+    <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center space-x-2">
+            {% if task.priority == 'High' %}
+                <span class="text-lg">🔥</span>
+                <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">URGENT</span>
+            {% elif task.priority == 'Medium' %}
+                <span class="text-lg">⚡</span>
+                <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">NORMAL</span>
+            {% else %}
+                <span class="text-lg">🌱</span>
+                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">LOW</span>
+            {% endif %}
+        </div>
+        {% if task.is_duplicate %}
+            <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-lg text-xs font-medium">
+                🔄 Duplicate
+            </span>
+        {% endif %}
+    </div>
+    
+    <!-- Task Title -->
+    <h4 class="font-bold text-gray-800 mb-3 text-lg leading-tight">
+        {{ task.title }}
+    </h4>
+    
+    <!-- Task Description -->
+    {% if task.description %}
+        <p class="text-gray-600 text-sm mb-4 leading-relaxed">{{ task.description|truncatewords:12 }}</p>
+    {% endif %}
+    
+    <!-- Metadata -->
+    <div class="space-y-2 mb-4">
+        {% if task.due_date %}
+            <div class="flex items-center text-sm text-gray-500">
+                <span class="mr-2">⏰</span>
+                <span class="font-medium">{{ task.due_date|date:"M j, Y" }}</span>
+            </div>
+        {% endif %}
+        
+        <div class="flex items-center text-xs text-gray-400">
+            <span class="mr-2">📅</span>
+            <span>Created {{ task.created_at|date:"M j" }}</span>
+        </div>
+    </div>
+    
+    <!-- Action Bar -->
+    <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+        <div class="flex space-x-3">
+            <a href="{% url 'edit_task' task.id %}" class="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors">
+                <span class="mr-1">✏️</span>Edit
+            </a>
+            <a href="{% url 'delete_task' task.id %}" class="flex items-center text-red-500 hover:text-red-700 text-sm font-medium transition-colors">
+                <span class="mr-1">🗑️</span>Delete
+            </a>
+        </div>
+        <div class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+            #{{ task.id }}
+        </div>
+    </div>
+</div>

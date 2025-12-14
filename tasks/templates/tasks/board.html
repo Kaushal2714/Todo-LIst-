@@ -1,0 +1,218 @@
+{% extends 'tasks/base.html' %}
+
+{% block content %}
+<!-- Control Panel -->
+<div class="glass-effect rounded-3xl p-6 mb-8 border border-white border-opacity-20">
+    <div class="flex items-center mb-4">
+        <span class="text-2xl mr-3">🎛️</span>
+        <h2 class="text-xl font-semibold text-gray-800">Control Panel</h2>
+    </div>
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-600">🎯 Priority</label>
+            <select name="priority" class="w-full px-4 py-3 bg-white bg-opacity-50 border-0 rounded-xl focus:ring-2 focus:ring-purple-400 transition-all">
+                <option value="">All Levels</option>
+                <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>🟢 Low</option>
+                <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>🟡 Medium</option>
+                <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>🔴 High</option>
+            </select>
+        </div>
+        
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-600">📊 Status</label>
+            <select name="status" class="w-full px-4 py-3 bg-white bg-opacity-50 border-0 rounded-xl focus:ring-2 focus:ring-purple-400 transition-all">
+                <option value="">All Stages</option>
+                <option value="To-Do" {% if status_filter == 'To-Do' %}selected{% endif %}>📝 To-Do</option>
+                <option value="In-Progress" {% if status_filter == 'In-Progress' %}selected{% endif %}>⚡ In-Progress</option>
+                <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>✅ Completed</option>
+            </select>
+        </div>
+        
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-600">🔄 Sort</label>
+            <select name="sort" class="w-full px-4 py-3 bg-white bg-opacity-50 border-0 rounded-xl focus:ring-2 focus:ring-purple-400 transition-all">
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>🆕 Newest</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>📅 Oldest</option>
+                <option value="due_date" {% if sort_by == 'due_date' %}selected{% endif %}>⏰ Due Date</option>
+            </select>
+        </div>
+        
+        <div class="flex items-end">
+            <button type="submit" class="w-full gradient-bg text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium">
+                🔍 Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Task Workflow Board -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Backlog Zone -->
+    <div class="relative">
+        <div class="absolute -top-2 -left-2 w-full h-full bg-gradient-to-br from-red-200 to-pink-200 rounded-3xl opacity-30"></div>
+        <div class="relative bg-white rounded-3xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-red-500 to-pink-500 p-6">
+                <div class="flex items-center justify-between text-white">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <span class="text-lg">📝</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Backlog</h3>
+                            <p class="text-red-100 text-sm">Ideas & Planning</p>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                        <span class="font-bold">{{ todo_tasks.count }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 min-h-96 space-y-4" id="todo-column" data-status="To-Do">
+                {% for task in todo_tasks %}
+                    {% include 'tasks/task_card.html' %}
+                {% empty %}
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🎯</div>
+                        <p class="text-gray-400 font-medium">Ready for new ideas!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Zone -->
+    <div class="relative">
+        <div class="absolute -top-2 -left-2 w-full h-full bg-gradient-to-br from-yellow-200 to-orange-200 rounded-3xl opacity-30"></div>
+        <div class="relative bg-white rounded-3xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 p-6">
+                <div class="flex items-center justify-between text-white">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center pulse-ring">
+                            <span class="text-lg">⚡</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">In Motion</h3>
+                            <p class="text-yellow-100 text-sm">Active Development</p>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                        <span class="font-bold">{{ inprogress_tasks.count }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 min-h-96 space-y-4" id="inprogress-column" data-status="In-Progress">
+                {% for task in inprogress_tasks %}
+                    {% include 'tasks/task_card.html' %}
+                {% empty %}
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🚀</div>
+                        <p class="text-gray-400 font-medium">Ready to work!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Zone -->
+    <div class="relative">
+        <div class="absolute -top-2 -left-2 w-full h-full bg-gradient-to-br from-green-200 to-emerald-200 rounded-3xl opacity-30"></div>
+        <div class="relative bg-white rounded-3xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-green-500 to-emerald-500 p-6">
+                <div class="flex items-center justify-between text-white">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center floating">
+                            <span class="text-lg">🏆</span>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Victory</h3>
+                            <p class="text-green-100 text-sm">Mission Complete</p>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                        <span class="font-bold">{{ completed_tasks.count }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 min-h-96 space-y-4" id="completed-column" data-status="Completed">
+                {% for task in completed_tasks %}
+                    {% include 'tasks/task_card.html' %}
+                {% empty %}
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <p class="text-gray-400 font-medium">Achievements await!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize drag and drop for all columns
+    const columns = ['todo-column', 'inprogress-column', 'completed-column'];
+    
+    columns.forEach(columnId => {
+        const column = document.getElementById(columnId);
+        if (column) {
+            new Sortable(column, {
+                group: 'tasks',
+                animation: 150,
+                ghostClass: 'opacity-50',
+                onEnd: function(evt) {
+                    const taskId = evt.item.dataset.taskId;
+                    const newStatus = evt.to.dataset.status;
+                    
+                    // Update task status via AJAX
+                    fetch('{% url "update_task_status" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({
+                            task_id: taskId,
+                            status: newStatus
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the task card's status badge
+                            const taskCard = evt.item;
+                            const statusBadge = taskCard.querySelector('.status-badge');
+                            if (statusBadge) {
+                                statusBadge.textContent = newStatus;
+                                statusBadge.className = 'status-badge px-2 py-1 rounded-full text-xs font-medium ' + getStatusClass(newStatus);
+                            }
+                        } else {
+                            alert('Error updating task status: ' + data.error);
+                            // Revert the move
+                            location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error updating task status');
+                        location.reload();
+                    });
+                }
+            });
+        }
+    });
+    
+    function getStatusClass(status) {
+        switch(status) {
+            case 'To-Do':
+                return 'bg-red-100 text-red-800';
+            case 'In-Progress':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'Completed':
+                return 'bg-green-100 text-green-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    }
+});
+</script>
+{% endblock %}
